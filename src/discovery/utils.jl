@@ -104,9 +104,14 @@ function find_rocm_library(libs::Vector, rocm_path::String, ext::String = dlext)
 end
 
 function find_rocm_library(lib::String, rocm_path::String, ext::String = dlext)
+    # WGM: See https://discourse.julialang.org/t/failed-while-initializing-amdgpu-jl-with-llvm-17-and-rocm-6-1-on-fedora-40/118341/3
+    # WGM: See https://github.com/JuliaLang/julia/issues/55801
+    # Try standard library path in Fedora installation
+    path = joinpath("/usr", "lib64", lib * ".$ext")
+    isfile(path) && return path
+
     path = Libdl.find_library(lib)
     isempty(path) || return Libdl.dlpath(path)
-
     libdir = joinpath(rocm_path, Sys.islinux() ? "lib" : "bin")
     if isdir(libdir)
         files = readdir(libdir)
